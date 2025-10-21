@@ -9,9 +9,5 @@
   "scripts": {
     "start": "vercel dev"
   },
-  "dependencies": {
-    // Здесь будут ваши будущие библиотеки.
-    // Например, если вы добавите axios, здесь будет:
-    // "axios": "^1.6.0"
-  }
+  "dependencies": {}
 }
