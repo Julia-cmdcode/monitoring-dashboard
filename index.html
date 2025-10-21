@@ -54,6 +54,33 @@
             margin-top: 8px;
         }
 
+        .header .status-badge {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-badge.healthy {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-badge.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .status-badge.critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--critical);
+            border: 1px solid var(--critical);
+        }
+
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -311,7 +338,7 @@
 
     <script>
         // Configuration
-        const API_URL = 'https://monitoring-dashboard-black.vercel.app/api/metrics'; // Replace with your Vercel URL
+        const API_URL = 'https://ваш-проект.vercel.app/api/metrics'; // Replace with your Vercel URL
         const REFRESH_INTERVAL = 10000; // Refresh every 10 seconds
 
         let refreshTimer;
@@ -348,25 +375,59 @@
         function updateDashboard(data) {
             dashboardEl.innerHTML = '';
 
-            // System Health Card
+            // Header status badge
+            updateHeaderStatus(data);
+
+            // Primary Cards (критически важные)
+            dashboardEl.appendChild(createRVManagerSiegeCard(data));
             dashboardEl.appendChild(createSystemHealthCard(data));
 
-            // Business Metrics Card
+            // Monetization Cards
+            dashboardEl.appendChild(createMonetizationFortressCard(data));
             dashboardEl.appendChild(createBusinessMetricsCard(data));
 
-            // Alerts Overview Card
+            // System Reliability Cards
+            dashboardEl.appendChild(createSystemReliabilityCard(data));
             dashboardEl.appendChild(createAlertsOverviewCard(data));
 
-            // Top Problematic Components Card
+            // Technical Cards
             dashboardEl.appendChild(createTopComponentsCard(data));
-
-            // Performance Card
             dashboardEl.appendChild(createPerformanceCard(data));
 
             // Trends Card (if available)
             if (data.trends && data.trends.healthTrend !== 'INSUFFICIENT_DATA') {
                 dashboardEl.appendChild(createTrendsCard(data));
             }
+        }
+
+        function updateHeaderStatus(data) {
+            // Определяем общий статус системы
+            const rvHealth = data.rvManagerSiegeHealth || {};
+            const systemHealth = data.systemHealthScore || 0;
+            const criticalErrors = data.businessLevels?.criticalErrorsPerHour || 0;
+
+            let overallStatus = 'healthy';
+            let statusText = 'Система работает нормально';
+
+            if (!rvHealth.isHealthy || systemHealth < 50 || criticalErrors > 1) {
+                overallStatus = 'critical';
+                statusText = 'КРИТИЧЕСКИЕ ПРОБЛЕМЫ';
+            } else if (systemHealth < 80 || criticalErrors > 0.5 || rvHealth.pendingRewards > 5) {
+                overallStatus = 'warning';
+                statusText = 'ТРЕБУЕТ ВНИМАНИЯ';
+            }
+
+            // Обновляем или создаем badge статуса
+            let statusBadge = document.querySelector('.header .status-badge');
+            if (!statusBadge) {
+                statusBadge = document.createElement('div');
+                statusBadge.className = `status-badge ${overallStatus}`;
+                document.querySelector('.header').appendChild(statusBadge);
+            } else {
+                statusBadge.className = `status-badge ${overallStatus}`;
+            }
+
+            statusBadge.textContent = statusText;
         }
 
         function createSystemHealthCard(data) {
@@ -553,6 +614,131 @@
             return card;
         }
 
+        function createRVManagerSiegeCard(data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const rvHealth = data.rvManagerSiegeHealth || {};
+            const isHealthy = rvHealth.isHealthy || false;
+            const healthStatus = isHealthy ? 'status-healthy' : 'status-critical';
+            const healthText = isHealthy ? 'Защита активна' : 'Система взломана';
+
+            const successRate = rvHealth.totalAttempts > 0 ?
+                ((rvHealth.successfulShows || 0) / rvHealth.totalAttempts * 100).toFixed(1) : 0;
+
+            card.innerHTML = `
+                <h3>
+                    <span>🎬</span>
+                    RV Manager Siege Health
+                </h3>
+                <div class="metric-grid">
+                    <div class="metric">
+                        <span class="metric-label">Статус защиты</span>
+                        <span class="metric-value ${healthStatus}">${isHealthy ? '🛡️' : '💀'}</span>
+                        <span class="metric-subtext">${healthText}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Успешность рекламы</span>
+                        <span class="metric-value ${parseFloat(successRate) > 80 ? 'status-healthy' : parseFloat(successRate) > 50 ? 'status-warning' : 'status-critical'}">${successRate}%</span>
+                        <span class="metric-subtext">${rvHealth.successfulShows || 0}/${rvHealth.totalAttempts || 0} показов</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Награды доставлено</span>
+                        <span class="metric-value status-healthy">${rvHealth.rewardsDelivered || 0}</span>
+                        <span class="metric-subtext">Гарантированные награды</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Ожидает обработки</span>
+                        <span class="metric-value ${rvHealth.pendingRewards > 5 ? 'status-warning' : 'status-healthy'}">${rvHealth.pendingRewards || 0}</span>
+                        <span class="metric-subtext">Отложенные награды</span>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function createMonetizationFortressCard(data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const rvHealth = data.rvManagerSiegeHealth || {};
+            const monetization = data.monetizationMetrics || {};
+            const fallbackActivations = rvHealth.fallbackActivations || 0;
+            const sdkFailures = rvHealth.sdkFailures || 0;
+
+            card.innerHTML = `
+                <h3>
+                    <span>💰</span>
+                    Monetization Fortress
+                </h3>
+                <div class="metric-grid">
+                    <div class="metric">
+                        <span class="metric-label">Fallback активаций</span>
+                        <span class="metric-value ${fallbackActivations > 0 ? 'status-warning' : 'status-healthy'}">${fallbackActivations}</span>
+                        <span class="metric-subtext">Экстренные награды</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">SDK сбоев</span>
+                        <span class="metric-value ${sdkFailures > 3 ? 'status-critical' : sdkFailures > 1 ? 'status-warning' : 'status-healthy'}">${sdkFailures}</span>
+                        <span class="metric-subtext">Рекламные сбои</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Обработано наград</span>
+                        <span class="metric-value status-healthy">${rvHealth.pendingRewardsProcessed || 0}</span>
+                        <span class="metric-subtext">Из очереди</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Показов рекламы</span>
+                        <span class="metric-value">${monetization.adShows || 0}</span>
+                        <span class="metric-subtext">Всего за сессию</span>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function createSystemReliabilityCard(data) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const errorMetrics = data.errorMetrics || {};
+            const averageResponseTime = errorMetrics.averageResponseTime || 0;
+            const systemHealthScore = data.systemHealthScore || 0;
+
+            card.innerHTML = `
+                <h3>
+                    <span>🛡️</span>
+                    System Reliability
+                </h3>
+                <div class="metric-grid">
+                    <div class="metric">
+                        <span class="metric-label">Время реакции</span>
+                        <span class="metric-value ${averageResponseTime > 1000 ? 'status-warning' : 'status-healthy'}">${averageResponseTime.toFixed(0)}ms</span>
+                        <span class="metric-subtext">На ошибки</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Стабильность</span>
+                        <span class="metric-value ${systemHealthScore > 80 ? 'status-healthy' : systemHealthScore > 50 ? 'status-warning' : 'status-critical'}">${systemHealthScore}%</span>
+                        <span class="metric-subtext">Общая надежность</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Критичность</span>
+                        <span class="metric-value ${errorMetrics.criticalErrorsPerHour > 1 ? 'status-critical' : 'status-healthy'}">${errorMetrics.criticalErrorsPerHour || 0}/час</span>
+                        <span class="metric-subtext">Критических ошибок</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Восстановление</span>
+                        <span class="metric-value ${errorMetrics.recoveryRate > 95 ? 'status-healthy' : 'status-warning'}">${errorMetrics.recoveryRate || 100}%</span>
+                        <span class="metric-subtext">Успешность</span>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
         function createTrendsCard(data) {
             const card = document.createElement('div');
             card.className = 'card';
@@ -621,4 +807,3 @@
     </script>
 </body>
 </html>
-
