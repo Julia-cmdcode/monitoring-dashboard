@@ -34,6 +34,37 @@ let latestMetrics = {
     slowRequests: 0,
     memoryUsage: 0
   },
+
+  // 🎬 RV MANAGER SIEGE HEALTH - КРИТИЧНЫЕ МЕТРИКИ МОНЕТИЗАЦИИ
+  rvManagerSiegeHealth: {
+    isHealthy: true,
+    totalAttempts: 0,
+    successfulShows: 0,
+    failedShows: 0,
+    rewardsDelivered: 0,
+    pendingRewards: 0,
+    sdkFailures: 0,
+    fallbackActivations: 0,
+    pendingRewardsProcessed: 0
+  },
+
+  // 💰 МОНЕТИЗАЦИЯ И РЕКЛАМА
+  monetizationMetrics: {
+    adShows: 0,
+    adSuccessRate: 100,
+    revenueImpact: 0,
+    totalEarnings: 0,
+    averageRewardValue: 0
+  },
+
+  // 🛡️ НАДЕЖНОСТЬ СИСТЕМЫ
+  errorMetrics: {
+    averageResponseTime: 0,
+    recoveryRate: 100,
+    criticalErrorsPerHour: 0,
+    systemStability: 100
+  },
+
   lastUpdate: new Date().toISOString(),
   lastUpdateRelative: 'Никогда',
   serverUptime: Date.now()
