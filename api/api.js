@@ -132,7 +132,11 @@ function getRelativeTimeString(dateString) {
 
 export default function handler(request, response) {
   // Разрешаем CORS для конкретного домена дашборда
-  response.setHeader('Access-Control-Allow-Origin', 'https://monitoring-dashboard-git-main-julia-cmdcodes-projects.vercel.app');
+  const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004','https://monitoring-dashboard-git-main-julia-cmdcodes-projects.vercel.app'];
+const origin = request.headers.origin;
+if (allowedOrigins.includes(origin)) {
+  response.setHeader('Access-Control-Allow-Origin', origin);
+}
   response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   response.setHeader('Access-Control-Max-Age', '86400'); // 24 часа
